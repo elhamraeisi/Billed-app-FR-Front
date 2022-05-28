@@ -84,7 +84,7 @@ Vous pouvez vous connecter en utilisant les comptes:
 
 ### administrateur : 
 ```
-utilisateur : admin@test.tld 
+utilisateur :  
 mot de passe : admin
 ```
 ### employé :

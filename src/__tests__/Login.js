@@ -5,7 +5,7 @@
 import LoginUI from "../views/LoginUI";
 import Login from "../containers/Login.js";
 import { ROUTES } from "../constants/routes";
-import { fireEvent, screen } from "@testing-library/dom";
+import { fireEvent, screen, waitFor } from "@testing-library/dom";
 
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on employee button Login In", () => {
@@ -111,8 +111,141 @@ describe("Given that I am a user on login page", () => {
       );
     });
 
-    test("It should renders Bills page", () => {
-      expect(screen.getAllByText("Mes notes de frais")).toBeTruthy();
+    test("If wrong user then a new user should be created", () => {
+      document.body.innerHTML = LoginUI();
+      const inputData = {
+        email: "test1@test.com",
+        password: "toto",
+      };
+
+      const inputEmailUser = screen.getByTestId("employee-email-input");
+      fireEvent.change(inputEmailUser, { target: { value: inputData.email } });
+      expect(inputEmailUser.value).toBe(inputData.email);
+
+      const inputPasswordUser = screen.getByTestId("employee-password-input");
+      fireEvent.change(inputPasswordUser, {
+        target: { value: inputData.password },
+      });
+      expect(inputPasswordUser.value).toBe(inputData.password);
+
+      const form = screen.getByTestId("form-employee");
+
+      // localStorage should be populated with form data
+      Object.defineProperty(window, "localStorage", {
+        value: {
+          getItem: jest.fn(() => null),
+          setItem: jest.fn(() => null),
+        },
+        writable: true,
+      });
+
+      // we have to mock navigation to test it
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      let PREVIOUS_LOCATION = "";
+
+      const store = jest.fn();
+
+      const login = new Login({
+        document,
+        localStorage: window.localStorage,
+        onNavigate,
+        PREVIOUS_LOCATION,
+        store,
+      });
+
+      const handleSubmit = jest.fn(login.handleSubmitEmployee);
+      login.login = jest.fn().mockRejectedValue({});
+      form.addEventListener("submit", handleSubmit);
+      fireEvent.submit(form);
+      expect(handleSubmit).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+          email: inputData.email,
+          password: inputData.password,
+          status: "connected",
+        })
+      );
+    });
+    test("It should renders Bills page", async () => {
+      document.body.innerHTML = LoginUI();
+      const inputData = {
+        type: "Employee",
+        email: "employee@test.tld",
+        password: "employee",
+      };
+
+      const inputEmailUser = screen.getByTestId("employee-email-input");
+      fireEvent.change(inputEmailUser, { target: { value: inputData.email } });
+      expect(inputEmailUser.value).toBe(inputData.email);
+
+      const inputPasswordUser = screen.getByTestId("employee-password-input");
+      fireEvent.change(inputPasswordUser, {
+        target: { value: inputData.password },
+      });
+      expect(inputPasswordUser.value).toBe(inputData.password);
+
+      const form = screen.getByTestId("form-employee");
+
+      // localStorage should be populated with form data
+      Object.defineProperty(window, "localStorage", {
+        value: {
+          getItem: jest.fn(() => null),
+          setItem: jest.fn(() => null),
+        },
+        writable: true,
+      });
+
+      // we have to mock navigation to test it
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      let PREVIOUS_LOCATION = "";
+
+      const store = jest.fn();
+
+      const login = new Login({
+        document,
+        localStorage: window.localStorage,
+        onNavigate,
+        PREVIOUS_LOCATION,
+        store,
+      });
+
+
+      const handleSubmit = jest.fn(login.handleSubmitEmployee);
+      login.login = jest.fn().mockResolvedValue({});
+      form.addEventListener("submit", handleSubmit);
+
+
+
+
+      await waitFor(() =>
+        fireEvent.submit(form)
+      );
+
+      await waitFor(() =>
+        screen.getAllByText("Mes notes de frais")
+      );
+      expect(handleSubmit).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+          email: inputData.email,
+          password: inputData.password,
+
+          status: "connected",
+        })
+      );
+      expect(screen.queryByText("Mes notes de frais")).toBeTruthy();
     });
   });
 });
@@ -163,8 +296,8 @@ describe("Given that I am a user on login page", () => {
       document.body.innerHTML = LoginUI();
       const inputData = {
         type: "Admin",
-        email: "johndoe@email.com",
-        password: "azerty",
+        email: "admin@test.tld",
+        password: "admin",
         status: "connected",
       };
 
@@ -223,7 +356,76 @@ describe("Given that I am a user on login page", () => {
       );
     });
 
-    test("It should renders HR dashboard page", () => {
+    test("It should renders HR dashboard page", async () => {
+      document.body.innerHTML = LoginUI();
+      const inputData = {
+        type: "Admin",
+        email: "employee@test.tld",
+        password: "employee",
+      };
+
+      const inputEmailUser = screen.getByTestId("admin-email-input");
+      fireEvent.change(inputEmailUser, { target: { value: inputData.email } });
+      expect(inputEmailUser.value).toBe(inputData.email);
+
+      const inputPasswordUser = screen.getByTestId("admin-password-input");
+      fireEvent.change(inputPasswordUser, {
+        target: { value: inputData.password },
+      });
+      expect(inputPasswordUser.value).toBe(inputData.password);
+
+      const form = screen.getByTestId("form-admin");
+
+      // localStorage should be populated with form data
+      Object.defineProperty(window, "localStorage", {
+        value: {
+          getItem: jest.fn(() => null),
+          setItem: jest.fn(() => null),
+        },
+        writable: true,
+      });
+
+      // we have to mock navigation to test it
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      let PREVIOUS_LOCATION = "";
+
+      const store = jest.fn();
+
+      const login = new Login({
+        document,
+        localStorage: window.localStorage,
+        onNavigate,
+        PREVIOUS_LOCATION,
+        store,
+      });
+
+
+      const handleSubmit = jest.fn(login.handleSubmitAdmin);
+      login.login = jest.fn().mockResolvedValue({});
+      form.addEventListener("submit", handleSubmit);
+
+      await waitFor(() =>
+        fireEvent.submit(form)
+      );
+
+      await waitFor(() =>
+        screen.queryByText("Validations")
+      );
+      expect(handleSubmit).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        "user",
+        JSON.stringify({
+          type: "Admin",
+          email: inputData.email,
+          password: inputData.password,
+
+          status: "connected",
+        })
+      );
       expect(screen.queryByText("Validations")).toBeTruthy();
     });
   });
