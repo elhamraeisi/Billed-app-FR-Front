@@ -20,11 +20,17 @@ const row = (bill) => {
 }
 
 const rows = (data) => {
-  const antiChrono = (a, b) => (new Date(a.date) < new Date(b.date) ? 1 : -1)
-  let sortedList = data.sort(antiChrono);
+  if (data) {
+    const antiChrono = (a, b) => (new Date(a.date) < new Date(b.date) ? 1 : -1)
+    let sortedList = data.sort(antiChrono);
 
-  return (sortedList && sortedList.length) ? sortedList.map(bill => row(bill)).join("") : ""
+    return (sortedList && sortedList.length) ? sortedList.map(bill => row(bill)).join("") : ""
+  } else {
+    return []
+  }
+
 }
+
 
 export default ({ data: bills, loading, error }) => {
 
@@ -38,7 +44,7 @@ export default ({ data: bills, loading, error }) => {
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <div class="modal-body">
+          <div class="modal-body" data-testid="modale-file">
           </div>
         </div>
       </div>
